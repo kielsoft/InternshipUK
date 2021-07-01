@@ -9,6 +9,8 @@ class Video {
   private final String title;
   private final String videoId;
   private final List<String> tags;
+  
+  private Boolean paused = false;
 
   Video(String title, String videoId, List<String> tags) {
     this.title = title;
@@ -29,5 +31,12 @@ class Video {
   /** Returns a readonly collection of the tags of the video. */
   List<String> getTags() {
     return tags;
+  }
+
+  public Boolean getIsPauseed() {
+    return paused;
+  }
+  public void setIsPauseed(Boolean pausedValue) {
+    paused = pausedValue;
   }
 }

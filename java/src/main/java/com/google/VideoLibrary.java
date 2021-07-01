@@ -18,6 +18,7 @@ class VideoLibrary {
 
   VideoLibrary() {
     this.videos = new HashMap<>();
+
     try {
       File file = new File(this.getClass().getResource("/videos.txt").getFile());
 
