@@ -27,7 +27,7 @@ public class VideoPlayer {
     
     System.out.println("Here's a list of all available videos:");
     videos.forEach(video -> {
-      System.out.printf("%s (%s) %s%n", video.getTitle(), video.getVideoId(), video.getTags().toString().replace(",", ""));
+      System.out.println(getVideoFullDetail(video));
     });
   }
 
@@ -35,6 +35,11 @@ public class VideoPlayer {
     Video video = videoLibrary.getVideo(videoId);
     if(Objects.nonNull(video)){
 
+      if(video.getFlagged()){
+        System.out.printf("Cannot play video: Video is currently flagged (reason: %s)%n", video.getFlagReason().isEmpty()? "Not supplied" : video.getFlagReason());
+        return;
+      }
+      
       // if there is a video currently playing - stop it first
       if(Objects.nonNull(playingVideo)){
         stopVideo();
@@ -60,8 +65,13 @@ public class VideoPlayer {
   }
 
   public void playRandomVideo() {
-    int randomIndex = (new Random()).nextInt(videoLibrary.getVideos().size());
-    Video video = videoLibrary.getVideos().get(randomIndex);
+    List<Video> videos = getUnflaggedVideos();
+    if(videos.isEmpty()) {
+      System.out.println("No videos available");
+      return;
+    }
+    int randomIndex = (new Random()).nextInt(videos.size());
+    Video video = videos.get(randomIndex);
     playVideo(video.getVideoId());
   }
 
@@ -132,6 +142,9 @@ public class VideoPlayer {
     } else if (existingPlaylist.getVideoIds().contains(videoId)) {
       System.out.printf("Cannot add video to %s: Video already added%n", playlistName);
       return;
+    } else if(video.getFlagged()){
+      System.out.printf("Cannot add video to %s: Video is currently flagged (reason: %s)%n", playlistName, video.getFlagReason().isEmpty()? "Not supplied" : video.getFlagReason());
+      return;
     }
 
     existingPlaylist.getVideoIds().add(videoId);
@@ -162,7 +175,7 @@ public class VideoPlayer {
       } else {
         existingPlaylist.getVideoIds().forEach(videoId -> {
           Video video = videoLibrary.getVideo(videoId);
-          System.out.printf("%s (%s) %s%n", video.getTitle(), video.getVideoId(), video.getTags().toString().replace(",", ""));
+          System.out.printf(getVideoFullDetail(video));
         });
       }
       
@@ -231,11 +244,29 @@ public class VideoPlayer {
   }
 
   public void flagVideo(String videoId) {
-    System.out.println("flagVideo needs implementation");
+    flagVideo(videoId, "");
   }
 
   public void flagVideo(String videoId, String reason) {
-    System.out.println("flagVideo needs implementation");
+    Video video = videoLibrary.getVideo(videoId);
+    if(Objects.nonNull(video)){
+
+      if(video.getFlagged()){
+        System.out.println("Cannot flag video: Video is already flagged");
+        return;
+      }
+
+      if(Objects.nonNull(playingVideo) &&  video.getVideoId() == playingVideo.getVideoId()) {
+        stopVideo();
+      }
+      
+      video.setFlagged(true);
+      video.setFlagReason(reason);
+      System.out.printf("Successfully flagged video: %s (reason: %s)%n", video.getTitle(), reason.isEmpty()? "Not supplied" : reason);
+
+    } else {
+      System.out.println("Cannot flag video: Video does not exist");
+    }
   }
 
   public void allowVideo(String videoId) {
@@ -246,8 +277,10 @@ public class VideoPlayer {
     String cleanedUpSearchTerm = cleanUpSearchTerm(searchTerm).toLowerCase();
     List<Video> foundVideos = new ArrayList<Video>();
 
-    for (int i = 0; i < videoLibrary.getVideos().size(); i++) {
-      Video video = videoLibrary.getVideos().get(i);
+    List<Video> videos = getUnflaggedVideos();
+
+    for (int i = 0; i < videos.size(); i++) {
+      Video video = videos.get(i);
       String textToSearchIn = (useTag) ? video.getTitle() : video.getTitle();
       if (textToSearchIn.toLowerCase().contains(cleanedUpSearchTerm)){
         foundVideos.add(video);
@@ -308,6 +341,22 @@ public class VideoPlayer {
   
   private String cleanUpSearchTerm(String searchTerm) {
     return cleanUpPlaylistName(searchTerm);
+  }
+
+  private List<Video> getUnflaggedVideos(){
+    List<Video> videos = new ArrayList<Video>();
+    for (int i = 0; i < videoLibrary.getVideos().size(); i++) {
+      Video video = videoLibrary.getVideos().get(i);
+      if(!video.getFlagged()) videos.add(video);
+    }
+
+    return videos;
+  }
+
+  private String getVideoFullDetail(Video video) {
+    String flagReason = !video.getFlagReason().isEmpty() ? video.getFlagReason() : "Not supplied";
+    String flgMessage = video.getFlagged()? String.format(" - FLAGGED (reason: %s)", flagReason) : "";
+    return String.format("%s (%s) %s%s", video.getTitle(), video.getVideoId(), video.getTags().toString().replace(",", ""), flgMessage);
   }
 
 

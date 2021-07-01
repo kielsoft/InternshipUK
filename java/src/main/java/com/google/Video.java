@@ -11,6 +11,8 @@ class Video {
   private final List<String> tags;
   
   private Boolean paused = false;
+  private Boolean flagged = false;
+  private String flagReason = "";
 
   Video(String title, String videoId, List<String> tags) {
     this.title = title;
@@ -36,7 +38,24 @@ class Video {
   public Boolean getIsPauseed() {
     return paused;
   }
+
   public void setIsPauseed(Boolean pausedValue) {
     paused = pausedValue;
+  }
+
+  public String getFlagReason() {
+    return flagReason;
+  }
+
+  public void setFlagReason(String flagReason) {
+    this.flagReason = flagReason;
+  }
+
+  public Boolean getFlagged() {
+    return flagged;
+  }
+
+  public void setFlagged(Boolean flagged) {
+    this.flagged = flagged;
   }
 }
