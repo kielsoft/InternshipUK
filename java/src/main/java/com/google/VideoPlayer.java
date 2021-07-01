@@ -324,6 +324,7 @@ public class VideoPlayer {
 
     var scanner = new Scanner(System.in);
     String response = scanner.nextLine();
+    scanner.close();
     int selectedNumber = 0;
     try {
       selectedNumber = Integer.parseInt(response);

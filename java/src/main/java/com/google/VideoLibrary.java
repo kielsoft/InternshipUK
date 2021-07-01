@@ -37,6 +37,7 @@ class VideoLibrary {
         }
         this.videos.put(id, new Video(title, id, tags));
       }
+      scanner.close();
     } catch (FileNotFoundException e) {
       System.out.println("Couldn't find videos.txt");
       e.printStackTrace();
