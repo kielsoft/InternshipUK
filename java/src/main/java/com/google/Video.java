@@ -58,4 +58,10 @@ class Video {
   public void setFlagged(Boolean flagged) {
     this.flagged = flagged;
   }
+
+  public String getFullDetail() {
+    String flagReasonText = !flagReason.isEmpty() ? flagReason : "Not supplied";
+    String flgMessage = flagged ? String.format(" - FLAGGED (reason: %s)", flagReasonText) : "";
+    return String.format("%s (%s) %s%s", title, videoId, tags.toString().replace(",", ""), flgMessage);
+  }
 }

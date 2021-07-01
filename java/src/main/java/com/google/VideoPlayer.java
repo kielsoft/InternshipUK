@@ -27,7 +27,7 @@ public class VideoPlayer {
     
     System.out.println("Here's a list of all available videos:");
     videos.forEach(video -> {
-      System.out.println(getVideoFullDetail(video));
+      System.out.println(video.getFullDetail());
     });
   }
 
@@ -175,7 +175,7 @@ public class VideoPlayer {
       } else {
         existingPlaylist.getVideoIds().forEach(videoId -> {
           Video video = videoLibrary.getVideo(videoId);
-          System.out.printf(getVideoFullDetail(video));
+          System.out.println(video.getFullDetail());
         });
       }
       
@@ -270,7 +270,25 @@ public class VideoPlayer {
   }
 
   public void allowVideo(String videoId) {
-    System.out.println("allowVideo needs implementation");
+    Video video = videoLibrary.getVideo(videoId);
+    if(Objects.nonNull(video)){
+
+      if(!video.getFlagged()){
+        System.out.println("Cannot remove flag from video: Video is not flagged");
+        return;
+      }
+
+      if(Objects.nonNull(playingVideo) &&  video.getVideoId().equals(playingVideo.getVideoId())) {
+        stopVideo();
+      }
+      
+      video.setFlagged(false);
+      video.setFlagReason("");
+      System.out.printf("Successfully removed flag from video: %s%n", video.getTitle());
+
+    } else {
+      System.out.println("Cannot remove flag from video: Video does not exist");
+    }
   }
 
   private void searchVideoList(String searchTerm, Boolean useTag) {
@@ -352,12 +370,4 @@ public class VideoPlayer {
 
     return videos;
   }
-
-  private String getVideoFullDetail(Video video) {
-    String flagReason = !video.getFlagReason().isEmpty() ? video.getFlagReason() : "Not supplied";
-    String flgMessage = video.getFlagged()? String.format(" - FLAGGED (reason: %s)", flagReason) : "";
-    return String.format("%s (%s) %s%s", video.getTitle(), video.getVideoId(), video.getTags().toString().replace(",", ""), flgMessage);
-  }
-
-
 }
