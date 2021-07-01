@@ -1,9 +1,11 @@
 package com.google;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
+import java.util.Scanner;
 
 public class VideoPlayer {
 
@@ -21,19 +23,8 @@ public class VideoPlayer {
   }
 
   public void showAllVideos() {
-    List<Video> videos = videoLibrary.getVideos();
-    Video tempVideo;
-
-    for (int i = 0; i < videos.size(); i++) {
-      for (int j = i+1; j < videos.size(); j++) {
-        if(videos.get(i).getTitle().compareTo(videos.get(j).getTitle()) > 0) {
-          tempVideo = videos.get(i);
-          videos.set(i, videos.get(j));
-          videos.set(j, tempVideo);
-        }
-      }
-    }
-
+    List<Video> videos = sortVideosInList(videoLibrary.getVideos());
+    
     System.out.println("Here's a list of all available videos:");
     videos.forEach(video -> {
       System.out.printf("%s (%s) %s%n", video.getTitle(), video.getVideoId(), video.getTags().toString().replace(",", ""));
@@ -232,11 +223,11 @@ public class VideoPlayer {
   }
 
   public void searchVideos(String searchTerm) {
-    System.out.println("searchVideos needs implementation");
+    searchVideoList(searchTerm, false);
   }
 
   public void searchVideosWithTag(String videoTag) {
-    System.out.println("searchVideosWithTag needs implementation");
+    searchVideoList(videoTag, true);
   }
 
   public void flagVideo(String videoId) {
@@ -251,6 +242,62 @@ public class VideoPlayer {
     System.out.println("allowVideo needs implementation");
   }
 
+  private void searchVideoList(String searchTerm, Boolean useTag) {
+    String cleanedUpSearchTerm = cleanUpSearchTerm(searchTerm).toLowerCase();
+    List<Video> foundVideos = new ArrayList<Video>();
+
+    for (int i = 0; i < videoLibrary.getVideos().size(); i++) {
+      Video video = videoLibrary.getVideos().get(i);
+      String textToSearchIn = (useTag) ? video.getTitle() : video.getTitle();
+      if (textToSearchIn.toLowerCase().contains(cleanedUpSearchTerm)){
+        foundVideos.add(video);
+      }
+    }
+
+    if(foundVideos.isEmpty()) {
+      System.out.printf("No search results for %s%n", searchTerm);
+      return;
+    }
+
+    // Sort the video by title ascendingly
+    foundVideos = sortVideosInList(foundVideos);
+
+    System.out.printf("Here are the results for %s:%n", searchTerm);
+    for (int i = 0; i < foundVideos.size(); i++) {
+      System.out.printf("%d) %s (%s) %s%n", i+1, foundVideos.get(i).getTitle(), 
+      foundVideos.get(i).getVideoId(), foundVideos.get(i).getTags().toString().replace(",", ""));
+    }
+    System.out.println("Would you like to play any of the above? If yes, specify the number of the video.");
+    System.out.println("If your answer is not a valid number, we will assume it's a no.");
+
+
+    var scanner = new Scanner(System.in);
+    String response = scanner.nextLine();
+    int selectedNumber = 0;
+    try {
+      selectedNumber = Integer.parseInt(response);
+      if(selectedNumber > 0 && selectedNumber <= foundVideos.size()){
+        playVideo(foundVideos.get(selectedNumber-1).getVideoId());
+      }
+    } catch (NumberFormatException e) {
+      
+    }
+  }
+
+  private List<Video> sortVideosInList(List<Video> videos) {
+    Video tempVideo;
+    for (int i = 0; i < videos.size(); i++) {
+      for (int j = i+1; j < videos.size(); j++) {
+        if(videos.get(i).getTitle().compareTo(videos.get(j).getTitle()) > 0) {
+          tempVideo = videos.get(i);
+          videos.set(i, videos.get(j));
+          videos.set(j, tempVideo);
+        }
+      }
+    }
+    return videos;
+  }
+
   private String cleanUpPlaylistName(String playlistName) {
     return playlistName.replaceAll("[^A-Za-z0-9]+", " ").trim().replaceAll(" ", "_");
   }
@@ -258,4 +305,10 @@ public class VideoPlayer {
   private String cleanUpPlaylistName(String playlistName, Boolean forId) {
     return cleanUpPlaylistName(playlistName).toLowerCase();
   }
+  
+  private String cleanUpSearchTerm(String searchTerm) {
+    return cleanUpPlaylistName(searchTerm);
+  }
+
+
 }
